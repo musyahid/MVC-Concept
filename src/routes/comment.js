@@ -5,7 +5,9 @@ const CommentController = require('../controllers/CommentController')
 
 router.get('/', CommentController.getComment)
 router.post('/',CommentController.saveComment)
-// router.get('/:id', )
+router.get('/:id', CommentController.getCommentById)
+router.delete('/:id', CommentController.deleteComment)
+router.patch('/:id', CommentController.updateComment)
 
 module.exports = router
 

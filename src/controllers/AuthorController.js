@@ -1,10 +1,21 @@
 const { Author, Post, Comment } = require("../models");
+const multer = require('multer')
 
 const response = {
     status: true,
     message: "",
     data:[]
 }
+
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function(req, file, cb) {
+    console.log(file)
+    cb(null, file.originalname)
+  }
+})
 
 class AuthorController {
 
@@ -16,15 +27,21 @@ class AuthorController {
   }
   
   static async saveAuthor(req, res) {
-      const {body} = req;
+    const upload = multer({ storage }).single('foto')
+    upload(req, res, async function(err) {
+      if (err) {
+        return res.send(err)
+      }
+  
+      console.log('file uploaded to server')
 
-      try { 
+       try { 
         const saveAuthor = await Author.create({
-        username:body.username,
-        password:body.password,
-        salt:body.salt,
-        email:body.email,
-        profile:body.profile
+        username:req.body.username,
+        password:req.body.password,
+        salt:req.body.salt,
+        email:req.body.email,
+        profile:req.body.profile
         }) 
         console.log(saveAuthor)
         response.message = "sukses simpan data"
@@ -34,6 +51,34 @@ class AuthorController {
           response.message = error.message;
           res.status(400).json(response)
       }
+  
+      // SEND FILE TO CLOUDINARY
+      const cloudinary = require('cloudinary').v2
+      cloudinary.config({
+        cloud_name: 'musyahid',
+        api_key: '533954739286819',
+        api_secret: 'e4htIfFtQVjBTqXci2ukq08rhKs'
+      })
+  
+      const path = req.file.path
+      const uniqueFilename = new Date().toISOString()
+  
+      cloudinary.uploader.upload(
+        path,
+        { public_id: `Author/${uniqueFilename}`, tags: `Author` }, // directory and tags are optional
+        function(err, image) {
+          if (err) return res.send(err)
+          console.log('file uploaded to Cloudinary')
+  
+          var fs = require('fs')
+          fs.unlinkSync(path)
+  
+          res.json(image)
+        }
+      )
+    })
+
+     
   }
 
   static async getAuthorById(req, res) {

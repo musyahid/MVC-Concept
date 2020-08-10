@@ -10,6 +10,7 @@ const routerPost = require('./src/routes/post')
 const routerComment = require('./src/routes/comment')
 
 
+
 // Configure the local strategy for use by Passport.
 //
 // The local strategy require a `verify` function which receives the credentials
@@ -80,7 +81,7 @@ app.set('view engine', 'ejs');
 // Use application-level middleware for common functionality, including
 // logging, parsing, and session handling.
 app.use(require('morgan')('combined'));
-app.use(require('body-parser').urlencoded({ extended: true }));
+app.use(require('body-parser').urlencoded({ extended: false }));
 app.use(express.json())
 app.use(require('express-session')({ secret: 'keyboard cat', resave: false, saveUninitialized: false }));
 
@@ -142,9 +143,8 @@ app.post("/login", async (req, res) => {
 })
 
 app.use('/', rootIndex)
-app.use('/author', passport.authenticate('jwt', { session: false }), routerAuthor)
+app.use('/author', routerAuthor)
 app.use('/post', passport.authenticate('jwt', { session: false }), routerPost)
 app.use('/comment', passport.authenticate('jwt', { session: false }), routerComment)
-
 
 app.listen(3000);
